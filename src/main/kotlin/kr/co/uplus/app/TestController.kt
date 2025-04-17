@@ -8,6 +8,7 @@ class TestController {
 
     @GetMapping("/hello")
     fun helloWorld(): String {
+        logger.info("Service is running, thread: {}", Thread.currentThread())
         return "Hello World"
     }
 }
