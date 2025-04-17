@@ -1,0 +1,40 @@
+spring:
+  application:
+    name: app
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/simpsons  # MySQL 접속 URL
+    username: test                              # DB 사용자명
+    password: test                              # DB 비밀번호
+    driver-class-name: software.aws.rds.jdbc.mysql.Driver # MySQL JDBC 드라이버 클래스
+
+    hikari:
+      pool-name: HikariPool                     # 커넥션 풀 이름
+      maximum-pool-size: 30                     # 최대 커넥션 수
+      minimum-idle: 5                           # 최소 유휴 커넥션 수
+      idle-timeout: 30000                       # 유휴 커넥션 최대 대기 시간 (ms)
+      max-lifetime: 1800000                     # 커넥션 최대 생존 시간 (ms)
+      connection-timeout: 30000                 # 커넥션 획득 대기 시간 (ms)
+      validation-timeout: 5000                  # 커넥션 유효성 검사 대기 시간 (ms)
+      connection-test-query: SELECT 1           # 커넥션 유효성 검사 쿼리
+
+      data-source-properties:
+        cachePrepStmts: true                    # PreparedStatement 캐싱 사용
+        prepStmtCacheSize: 250                  # PreparedStatement 캐시 사이즈
+        prepStmtCacheSqlLimit: 2048             # 캐싱될 SQL 문의 최대 길이
+        useServerPrepStmts: true                # 서버 측 PreparedStatement 사용
+        useLocalSessionState: true              # 로컬 세션 상태 캐싱
+        rewriteBatchedStatements: true          # 배치 쿼리 성능 최적화
+        cacheResultSetMetadata: true            # ResultSet 메타데이터 캐싱
+        cacheServerConfiguration: true          # 서버 구성 정보 캐싱
+        elideSetAutoCommits: true               # 불필요한 setAutoCommit 호출 제거
+        maintainTimeStats: false                # 성능 향상을 위해 타임 통계 비활성화
+
+  jpa:
+    hibernate:
+      ddl-auto: update                          # 스키마 자동 업데이트 (개발용)
+    show-sql: true                              # 실행되는 SQL 쿼리 로그 출력
+    properties:
+      hibernate:
+        format_sql: true                        # SQL 포맷팅
+    database-platform: org.hibernate.dialect.MySQL8Dialect # Hibernate에 MySQL8 사용 지정
