@@ -3,9 +3,9 @@ spring:
     name: app
 
   datasource:
-    url: jdbc:mysql://localhost:3306/simpsons  # MySQL 접속 URL
-    username: test                              # DB 사용자명
-    password: test                              # DB 비밀번호
+    url: jdbc:mysql://localhost:3306/app  # MySQL 접속 URL
+    username: username                              # DB 사용자명
+    password: password                              # DB 비밀번호
     driver-class-name: software.aws.rds.jdbc.mysql.Driver # MySQL JDBC 드라이버 클래스
 
     hikari:

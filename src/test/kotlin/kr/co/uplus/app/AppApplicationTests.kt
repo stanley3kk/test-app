@@ -1,4 +1,4 @@
-package co.kr.uplus.app
+package kr.co.uplus.app
 
 import org.junit.jupiter.api.Test
 import org.springframework.boot.test.context.SpringBootTest

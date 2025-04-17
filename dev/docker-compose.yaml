@@ -1,0 +1,23 @@
+services:
+  mysql_container:
+    image: mysql:8.0
+    container_name: mysql
+    restart: always
+    environment:
+      MYSQL_DATABASE: 'app'
+      MYSQL_USER: 'username'
+      MYSQL_PASSWORD: 'password'
+      MYSQL_ROOT_PASSWORD: 'rootpassword'
+    ports:
+      - 3306:3306
+    volumes:
+      - ./mysql_container_init/:/docker-entrypoint-initdb.d
+      - mysql-data:/var/lib/mysql
+    platform: linux/x86_64
+  mongodb:
+    container_name: mongodb
+    image: mongo:5.0
+    ports:
+      - "27017:27017"
+volumes:
+  mysql-data:
