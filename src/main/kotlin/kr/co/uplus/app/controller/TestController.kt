@@ -1,5 +1,6 @@
-package kr.co.uplus.app
+package kr.co.uplus.app.controller
 
+import kr.co.uplus.app.util.logger
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RestController
 

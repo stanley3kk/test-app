@@ -1,4 +1,4 @@
-package kr.co.uplus.app
+package kr.co.uplus.app.util
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
