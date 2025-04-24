@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    container_name: app
+    depends_on:
+      - mysql
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/app
+      SPRING_DATASOURCE_USERNAME: username
+      SPRING_DATASOURCE_PASSWORD: password
+    restart: always
+
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    restart: always
+    environment:
+      MYSQL_DATABASE: 'app'
+      MYSQL_USER: 'username'
+      MYSQL_PASSWORD: 'password'
+      MYSQL_ROOT_PASSWORD: 'rootpassword'
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./dev/mysql_container_init/:/docker-entrypoint-initdb.d
+      - mysql-data:/var/lib/mysql
+
+  mongodb:
+    container_name: mongodb
+    image: mongo:5.0
+    ports:
+      - "27017:27017"
+
+volumes:
+  mysql-data:

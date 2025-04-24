@@ -3,28 +3,36 @@ package kr.co.uplus.app.controller
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.ExampleObject
-import io.swagger.v3.oas.annotations.parameters.RequestBody
-import kr.co.uplus.app.domain.PersonEntity
-import kr.co.uplus.app.repository.PersonRepository
+import io.swagger.v3.oas.annotations.parameters.RequestBody as RequestBodyMapping
+import jakarta.validation.Valid
+import kr.co.uplus.app.dto.request.CreatePersonRequest
+import kr.co.uplus.app.dto.request.UpdatePersonRequest
+import kr.co.uplus.app.dto.response.PersonResponse
+import kr.co.uplus.app.service.PersonService
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
+import org.springframework.data.domain.Slice
+import org.springframework.data.web.PageableDefault
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/api/persons")
 class PersonController(
-    private val personRepository: PersonRepository
+    private val personService: PersonService
 ) {
 
     // Create
     @PostMapping
     @Operation(summary = "Create new person")
-    @RequestBody(
+    @RequestBodyMapping(
         required = true,
         content = [Content(
             mediaType = "application/json",
@@ -40,45 +48,45 @@ class PersonController(
             )]
         )]
     )
-    fun createPerson(@org.springframework.web.bind.annotation.RequestBody personEntity: PersonEntity): PersonEntity {
-        return personRepository.save(personEntity)
+    fun createPerson(@Valid @RequestBody request: CreatePersonRequest): PersonResponse {
+        return personService.createPerson(request)
     }
 
     // Read All
     @GetMapping
-    fun getAllPersons(): List<PersonEntity> {
-        return personRepository.findAll()
+    fun getAllPersons(): List<PersonResponse> {
+        return personService.getAllPersons()
     }
 
     // Read One
     @GetMapping("/{id}")
-    fun getPersonById(@PathVariable id: Long): ResponseEntity<PersonEntity> {
-        val person = personRepository.findById(id)
-        return if (person.isPresent) {
-            ResponseEntity.ok(person.get())
-        } else {
-            ResponseEntity.notFound().build()
-        }
+    fun getPersonById(@PathVariable id: Long): ResponseEntity<PersonResponse> {
+        return personService.getPersonById(id)
     }
 
     // Update
     @PutMapping("/{id}")
-    fun updatePerson(@PathVariable id: Long, @org.springframework.web.bind.annotation.RequestBody updated: PersonEntity): ResponseEntity<PersonEntity> {
-        return personRepository.findById(id).map {
-            val newPerson = it.copy(name = updated.name, age = updated.age)
-            ResponseEntity.ok(personRepository.save(newPerson))
-        }.orElse(ResponseEntity.notFound().build())
+    fun updatePerson(@PathVariable id: Long, @Valid @RequestBody request: UpdatePersonRequest): ResponseEntity<PersonResponse> {
+        return personService.updatePerson(id, request)
     }
 
     // Delete
     @DeleteMapping("/{id}")
     fun deletePerson(@PathVariable id: Long): ResponseEntity<Void> {
-        val person = personRepository.findById(id)
-        return if (person.isPresent) {
-            personRepository.delete(person.get())
-            ResponseEntity.noContent().build()
-        } else {
-            ResponseEntity.notFound().build()
-        }
+        return personService.deletePerson(id)
+    }
+
+    // Pagination
+    @GetMapping("/page")
+    @Operation(summary = "Get persons with pagination")
+    fun getPersonsWithPagination(@PageableDefault(size = 10) pageable: Pageable): Page<PersonResponse> {
+        return personService.getPersonsWithPagination(pageable)
+    }
+
+    // Slicing
+    @GetMapping("/slice")
+    @Operation(summary = "Get persons with slicing")
+    fun getPersonsWithSlicing(@PageableDefault(size = 10) pageable: Pageable): Slice<PersonResponse> {
+        return personService.getPersonsWithSlicing(pageable)
     }
 }
