@@ -20,6 +20,14 @@ repositories {
 	mavenCentral()
 }
 
+// Spring Cloud dependency management
+extra["springCloudVersion"] = "2023.0.0"
+dependencyManagement {
+	imports {
+		mavenBom("org.springframework.cloud:spring-cloud-dependencies:${property("springCloudVersion")}")
+	}
+}
+
 dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 	implementation("org.springframework.boot:spring-boot-starter-web")
@@ -28,6 +36,9 @@ dependencies {
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0")
 	implementation("software.aws.rds:aws-mysql-jdbc:1.1.15")
+
+	// OpenFeign
+	implementation("org.springframework.cloud:spring-cloud-starter-openfeign")
 
 	// Cache
 	implementation("org.springframework.boot:spring-boot-starter-cache")
