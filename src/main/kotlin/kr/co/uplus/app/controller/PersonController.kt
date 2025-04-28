@@ -89,4 +89,18 @@ class PersonController(
     fun getPersonsWithSlicing(@PageableDefault(size = 10) pageable: Pageable): Slice<PersonResponse> {
         return personService.getPersonsWithSlicing(pageable)
     }
+
+    // QueryDSL - Find persons with age >= specified value
+    @GetMapping("/age/{minAge}")
+    @Operation(summary = "Get persons with age greater than or equal to specified value")
+    fun getPersonsByMinAge(@PathVariable minAge: Int): List<PersonResponse> {
+        return personService.findByAgeGreaterThanEqual(minAge)
+    }
+
+    // QueryDSL - Find persons with age >= 10
+    @GetMapping("/age-over-10")
+    @Operation(summary = "Get persons with age greater than or equal to 10")
+    fun getPersonsWithAgeOver10(): List<PersonResponse> {
+        return personService.findByAgeGreaterThanEqual(10)
+    }
 }

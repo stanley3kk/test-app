@@ -20,4 +20,10 @@
     <!-- 특정 패키지 로거 설정 예시 (원하면 추가/제거 가능) -->
     <logger name="kr.co.uplus.app" level="DEBUG" />
 
+    <!-- Ehcache 모니터링을 위한 로거 설정 -->
+    <logger name="org.ehcache" level="DEBUG" />
+    <logger name="org.ehcache.core" level="DEBUG" />
+    <logger name="org.ehcache.jsr107" level="DEBUG" />
+    <logger name="javax.cache" level="DEBUG" />
+
 </configuration>

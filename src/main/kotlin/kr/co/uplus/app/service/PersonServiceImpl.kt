@@ -14,6 +14,7 @@ import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Slice
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
+import org.springframework.cache.annotation.Cacheable
 
 /**
  * Implementation of the PersonService interface.
@@ -72,6 +73,7 @@ class PersonServiceImpl(
         return personRepository.findByName(name).toResponse()
     }
 
+    @Cacheable(value = ["personsWithPagination"], key = "#pageable.pageNumber + '_' + #pageable.pageSize + '_' + #pageable.sort")
     override fun getPersonsWithPagination(pageable: Pageable): Page<PersonResponse> {
         logger.info("Retrieving persons with pagination: {}", pageable)
         return personRepository.findAll(pageable).map { it.toResponse() }
@@ -80,5 +82,10 @@ class PersonServiceImpl(
     override fun getPersonsWithSlicing(pageable: Pageable): Slice<PersonResponse> {
         logger.info("Retrieving persons with slicing: {}", pageable)
         return personRepository.findAll(pageable).map { it.toResponse() }
+    }
+
+    override fun findByAgeGreaterThanEqual(age: Int): List<PersonResponse> {
+        logger.info("Finding persons with age >= {}", age)
+        return personRepository.findByAgeGreaterThanEqual(age).map { it.toResponse() }
     }
 }

@@ -4,6 +4,7 @@ plugins {
 	id("org.springframework.boot") version "3.2.3"
 	id("io.spring.dependency-management") version "1.1.4"
 	kotlin("plugin.jpa") version "1.9.22"
+	kotlin("kapt") version "1.9.22"
 }
 
 group = "co.kr.uplus"
@@ -27,6 +28,21 @@ dependencies {
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0")
 	implementation("software.aws.rds:aws-mysql-jdbc:1.1.15")
+
+	// Cache
+	implementation("org.springframework.boot:spring-boot-starter-cache")
+	implementation("org.ehcache:ehcache:3.10.8")
+	implementation("javax.cache:cache-api:1.1.1")
+
+	// JAXB dependencies for EhCache XML parsing
+	implementation("javax.xml.bind:jaxb-api:2.3.1")
+	implementation("org.glassfish.jaxb:jaxb-runtime:2.3.1")
+	implementation("com.sun.activation:javax.activation:1.2.0")
+
+	// QueryDSL
+	implementation("com.querydsl:querydsl-jpa:5.0.0:jakarta")
+	kapt("com.querydsl:querydsl-apt:5.0.0:jakarta")
+
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")

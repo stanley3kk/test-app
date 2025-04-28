@@ -1,6 +1,7 @@
 package kr.co.uplus.app.dto.response
 
 import kr.co.uplus.app.domain.CompanyEntity
+import java.io.Serializable
 
 /**
  * DTO for returning company data.
@@ -10,7 +11,7 @@ data class CompanyResponse(
     val name: String,
     val address: String,
     val phoneNumber: String
-) {
+) : Serializable {
     companion object {
         /**
          * Convert a CompanyEntity to a CompanyResponse.

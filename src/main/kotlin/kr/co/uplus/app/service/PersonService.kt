@@ -76,4 +76,12 @@ interface PersonService {
      * @return Slice of person responses
      */
     fun getPersonsWithSlicing(pageable: Pageable): Slice<PersonResponse>
+
+    /**
+     * Find all persons with age greater than or equal to the specified value.
+     *
+     * @param age The minimum age to filter by
+     * @return List of person responses with age >= the specified value
+     */
+    fun findByAgeGreaterThanEqual(age: Int): List<PersonResponse>
 }

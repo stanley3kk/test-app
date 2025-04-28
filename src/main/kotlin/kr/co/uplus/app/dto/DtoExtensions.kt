@@ -2,12 +2,17 @@ package kr.co.uplus.app.dto
 
 import kr.co.uplus.app.domain.PersonEntity
 import kr.co.uplus.app.domain.CompanyEntity
+import kr.co.uplus.app.domain.FaqEntity
 import kr.co.uplus.app.dto.request.CreatePersonRequest
 import kr.co.uplus.app.dto.request.UpdatePersonRequest
 import kr.co.uplus.app.dto.request.CreateCompanyRequest
 import kr.co.uplus.app.dto.request.UpdateCompanyRequest
+import kr.co.uplus.app.dto.request.CreateFaqRequest
+import kr.co.uplus.app.dto.request.UpdateFaqRequest
 import kr.co.uplus.app.dto.response.PersonResponse
 import kr.co.uplus.app.dto.response.CompanyResponse
+import kr.co.uplus.app.dto.response.FaqResponse
+import java.time.LocalDateTime
 
 /**
  * Extension functions for converting between DTOs and entities.
@@ -75,5 +80,55 @@ fun CompanyEntity.applyUpdate(request: UpdateCompanyRequest): CompanyEntity {
         name = request.name,
         address = request.address,
         phoneNumber = request.phoneNumber
+    )
+}
+
+/**
+ * Convert a CreateFaqRequest to a FaqEntity.
+ */
+fun CreateFaqRequest.toEntity(): FaqEntity {
+    return FaqEntity(
+        question = this.question,
+        answer = this.answer,
+        faqType = this.faqType,
+        faqCategory = this.faqCategory,
+        isFavorite = this.isFavorite,
+        imageUrl = this.imageUrl,
+        appLink = this.appLink,
+        startTime = LocalDateTime.now(),
+        osType = this.osType
+    )
+}
+
+/**
+ * Convert a FaqEntity to a FaqResponse.
+ */
+fun FaqEntity.toResponse(): FaqResponse {
+    return FaqResponse(
+        id = this.id,
+        question = this.question,
+        answer = this.answer,
+        faqType = this.faqType,
+        faqCategory = this.faqCategory,
+        isFavorite = this.isFavorite,
+        imageUrl = this.imageUrl,
+        appLink = this.appLink,
+        startTime = this.startTime
+    )
+}
+
+/**
+ * Apply the updates from an UpdateFaqRequest to a FaqEntity.
+ */
+fun FaqEntity.applyUpdate(request: UpdateFaqRequest): FaqEntity {
+    return this.copy(
+        question = request.question,
+        answer = request.answer,
+        faqType = request.faqType,
+        faqCategory = request.faqCategory,
+        isFavorite = request.isFavorite,
+        imageUrl = request.imageUrl,
+        appLink = request.appLink,
+        osType = request.osType
     )
 }
