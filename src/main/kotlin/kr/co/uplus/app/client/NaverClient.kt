@@ -4,7 +4,7 @@ import kr.co.uplus.app.config.FeignConfig
 import org.springframework.cloud.openfeign.FeignClient
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
-
+//sdfdsf
 @FeignClient(
     name = "naver-client", 
     url = "https://www.naver.com",
