@@ -13,7 +13,7 @@ services:
 #    volumes:
 #      - ./mysql_container_init/:/docker-entrypoint-initdb.d
 #      - mysql-data:/var/lib/mysql
-#    platform: linux/amd64
+#    platform: linux/amd64ㄹㄴㄹㅇㄴㄹㅇㄴㄹㄴㅇ
 #  mongodb:
 #    container_name: mongodb
 #    image: mongo:5.0
