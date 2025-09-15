@@ -40,6 +40,9 @@ dependencies {
 	// OpenFeign
 	implementation("org.springframework.cloud:spring-cloud-starter-openfeign")
 
+	// Kafka
+	implementation("org.springframework.kafka:spring-kafka")
+
 	// Cache
 	implementation("org.springframework.boot:spring-boot-starter-cache")
 	implementation("org.ehcache:ehcache:3.10.8")
@@ -56,6 +59,7 @@ dependencies {
 
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
+	testImplementation("io.mockk:mockk:1.13.8")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 

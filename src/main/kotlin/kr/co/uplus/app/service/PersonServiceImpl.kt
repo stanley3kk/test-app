@@ -15,20 +15,32 @@ import org.springframework.data.domain.Slice
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
 import org.springframework.cache.annotation.Cacheable
+import org.springframework.kafka.core.KafkaTemplate
+import org.springframework.transaction.annotation.Transactional
+import com.fasterxml.jackson.databind.ObjectMapper
 
 /**
  * Implementation of the PersonService interface.
  */
 @Service
 class PersonServiceImpl(
-    private val personRepository: PersonRepository
+    private val personRepository: PersonRepository,
+    private val kafkaTemplate: KafkaTemplate<String, String>,
+    private val objectMapper: ObjectMapper
 ) : PersonService {
 
+    @Transactional
     override fun createPerson(request: CreatePersonRequest): PersonResponse {
         logger.info("Creating new person: {}", request)
         val personEntity = request.toEntity()
         val savedEntity = personRepository.save(personEntity)
-        return savedEntity.toResponse()
+        val personResponse = savedEntity.toResponse()
+
+        throw RuntimeException("test")
+        val personJson = objectMapper.writeValueAsString(personResponse)
+        kafkaTemplate.send("person-topic", personResponse.id.toString(), personJson)
+
+        return personResponse
     }
 
     override fun getAllPersons(): List<PersonResponse> {

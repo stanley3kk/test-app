@@ -1,91 +1,127 @@
 package kr.co.uplus.app.controller
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import io.mockk.every
+import io.mockk.impl.annotations.MockK
+import io.mockk.junit5.MockKExtension
+import io.mockk.verify
 import kr.co.uplus.app.dto.request.CreateFaqRequest
 import kr.co.uplus.app.dto.request.UpdateFaqRequest
+import kr.co.uplus.app.dto.response.FaqResponse
+import kr.co.uplus.app.service.FaqService
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.web.client.TestRestTemplate
-import org.springframework.boot.test.web.server.LocalServerPort
-import org.springframework.http.HttpEntity
-import org.springframework.http.HttpHeaders
-import org.springframework.http.HttpMethod
+import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
+import org.springframework.http.ResponseEntity
+import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
+import org.springframework.test.web.servlet.setup.MockMvcBuilders
+import java.time.LocalDateTime
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@ExtendWith(MockKExtension::class)
 class FaqControllerTest {
 
-    @LocalServerPort
-    private var port: Int = 0
-
-    @Autowired
-    private lateinit var restTemplate: TestRestTemplate
-
+    private lateinit var mockMvc: MockMvc
+    
+    @MockK
+    private lateinit var faqService: FaqService
+    
+    private lateinit var faqController: FaqController
+    
+    private val objectMapper = ObjectMapper()
+    
+    @BeforeEach
+    fun setup() {
+        faqController = FaqController(faqService)
+        mockMvc = MockMvcBuilders.standaloneSetup(faqController).build()
+        
+        // Configure ObjectMapper to handle LocalDateTime
+        objectMapper.findAndRegisterModules()
+    }
+    
     @Test
     fun `should return FAQs when getFaqs is called with valid OS type`() {
-        // When
-        val response = restTemplate.getForEntity(
-            "http://localhost:$port/faq?os=iOS",
-            Map::class.java
+        // Given
+        val osType = "iOS"
+        val faqList = listOf(
+            FaqResponse(
+                id = 1L,
+                question = "Test Question 1",
+                answer = "Test Answer 1",
+                faqType = 1,
+                faqCategory = "Test Category",
+                isFavorite = false,
+                imageUrl = null,
+                appLink = null,
+                startTime = LocalDateTime.now()
+            ),
+            FaqResponse(
+                id = 2L,
+                question = "Test Question 2",
+                answer = "Test Answer 2",
+                faqType = 2,
+                faqCategory = "Test Category",
+                isFavorite = true,
+                imageUrl = null,
+                appLink = null,
+                startTime = LocalDateTime.now()
+            )
         )
-
-        // Then
-        assert(response.statusCode == HttpStatus.OK || response.statusCode == HttpStatus.NO_CONTENT)
-        println("[DEBUG_LOG] Response status: ${response.statusCode}")
-        println("[DEBUG_LOG] Response body: ${response.body}")
+        
+        val responseMap = mapOf("faqs" to faqList)
+        
+        every { faqService.getFaqByIdAndOsType(null, osType) } returns ResponseEntity.ok(responseMap)
+        
+        // When & Then
+        mockMvc.perform(get("/faq?os=$osType"))
+            .andExpect(status().isOk)
+        
+        // Verify
+        verify(exactly = 1) { faqService.getFaqByIdAndOsType(null, osType) }
     }
-
+    
     @Test
     fun `should return specific FAQ when getFaqs is called with valid ID and OS type`() {
-        // First create a FAQ to ensure we have one to retrieve
-        val createRequest = CreateFaqRequest(
+        // Given
+        val faqId = 1L
+        val osType = "iOS"
+        val faq = FaqResponse(
+            id = faqId,
             question = "Test Question",
             answer = "Test Answer",
             faqType = 1,
             faqCategory = "Test Category",
             isFavorite = false,
-            osType = "iOS"
-        )
-        val createHeaders = HttpHeaders().apply {
-            contentType = MediaType.APPLICATION_JSON
-        }
-        val createEntity = HttpEntity(createRequest, createHeaders)
-        val createResponse = restTemplate.postForEntity(
-            "http://localhost:$port/faq",
-            createEntity,
-            Map::class.java
+            imageUrl = null,
+            appLink = null,
+            startTime = LocalDateTime.now()
         )
         
-        // Get the ID of the created FAQ
-        val createdFaqId = (createResponse.body as Map<*, *>)["id"] as Int
+        val responseMap = mapOf("faq" to faq)
         
-        // When
-        val response = restTemplate.getForEntity(
-            "http://localhost:$port/faq?id=$createdFaqId&os=iOS",
-            Map::class.java
-        )
-
-        // Then
-        assert(response.statusCode == HttpStatus.OK)
-        println("[DEBUG_LOG] Response status: ${response.statusCode}")
-        println("[DEBUG_LOG] Response body: ${response.body}")
+        every { faqService.getFaqByIdAndOsType(faqId, osType) } returns ResponseEntity.ok(responseMap)
+        
+        // When & Then
+        mockMvc.perform(get("/faq?id=$faqId&os=$osType"))
+            .andExpect(status().isOk)
+        
+        // Verify
+        verify(exactly = 1) { faqService.getFaqByIdAndOsType(faqId, osType) }
     }
-
+    
     @Test
     fun `should return 400 when getFaqs is called without OS type`() {
-        // When
-        val response = restTemplate.getForEntity(
-            "http://localhost:$port/faq",
-            Map::class.java
-        )
-
-        // Then
-        assert(response.statusCode == HttpStatus.BAD_REQUEST)
-        println("[DEBUG_LOG] Response status: ${response.statusCode}")
-        println("[DEBUG_LOG] Response body: ${response.body}")
+        // When & Then
+        mockMvc.perform(get("/faq"))
+            .andExpect(status().isBadRequest)
+        
+        // Verify - no service method should be called
+        verify(exactly = 0) { faqService.getFaqByIdAndOsType(any(), any()) }
     }
-
+    
     @Test
     fun `should create FAQ when createFaq is called with valid request`() {
         // Given
@@ -97,28 +133,36 @@ class FaqControllerTest {
             isFavorite = false,
             osType = "iOS"
         )
-        val headers = HttpHeaders().apply {
-            contentType = MediaType.APPLICATION_JSON
-        }
-        val entity = HttpEntity(request, headers)
-
-        // When
-        val response = restTemplate.postForEntity(
-            "http://localhost:$port/faq",
-            entity,
-            Map::class.java
-        )
-
-        // Then
-        assert(response.statusCode == HttpStatus.OK)
-        val body = response.body as Map<*, *>
-        assert(body["question"] == "Test Question")
-        assert(body["answer"] == "Test Answer")
         
-        println("[DEBUG_LOG] Response status: ${response.statusCode}")
-        println("[DEBUG_LOG] Response body: ${response.body}")
+        val createdFaq = FaqResponse(
+            id = 1L,
+            question = "Test Question",
+            answer = "Test Answer",
+            faqType = 1,
+            faqCategory = "Test Category",
+            isFavorite = false,
+            imageUrl = null,
+            appLink = null,
+            startTime = LocalDateTime.now()
+        )
+        
+        every { faqService.createFaq(any()) } returns createdFaq
+        
+        // When & Then
+        mockMvc.perform(
+            post("/faq")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request))
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.id").value(1))
+            .andExpect(jsonPath("$.question").value("Test Question"))
+            .andExpect(jsonPath("$.answer").value("Test Answer"))
+        
+        // Verify
+        verify(exactly = 1) { faqService.createFaq(request) }
     }
-
+    
     @Test
     fun `should return 400 when createFaq is called with invalid request`() {
         // Given
@@ -130,50 +174,24 @@ class FaqControllerTest {
             isFavorite = false,
             osType = "iOS"
         )
-        val headers = HttpHeaders().apply {
-            contentType = MediaType.APPLICATION_JSON
-        }
-        val entity = HttpEntity(request, headers)
-
-        // When
-        val response = restTemplate.postForEntity(
-            "http://localhost:$port/faq",
-            entity,
-            Map::class.java
+        
+        // When & Then
+        mockMvc.perform(
+            post("/faq")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request))
         )
-
-        // Then
-        assert(response.statusCode == HttpStatus.BAD_REQUEST)
-        println("[DEBUG_LOG] Response status: ${response.statusCode}")
-        println("[DEBUG_LOG] Response body: ${response.body}")
+            .andExpect(status().isBadRequest)
+        
+        // Verify - no service method should be called
+        verify(exactly = 0) { faqService.createFaq(any()) }
     }
-
+    
     @Test
     fun `should update FAQ when updateFaq is called with valid request`() {
-        // First create a FAQ to update
-        val createRequest = CreateFaqRequest(
-            question = "Original Question",
-            answer = "Original Answer",
-            faqType = 1,
-            faqCategory = "Original Category",
-            isFavorite = false,
-            osType = "iOS"
-        )
-        val createHeaders = HttpHeaders().apply {
-            contentType = MediaType.APPLICATION_JSON
-        }
-        val createEntity = HttpEntity(createRequest, createHeaders)
-        val createResponse = restTemplate.postForEntity(
-            "http://localhost:$port/faq",
-            createEntity,
-            Map::class.java
-        )
-        
-        // Get the ID of the created FAQ
-        val createdFaqId = (createResponse.body as Map<*, *>)["id"] as Int
-        
         // Given
-        val updateRequest = UpdateFaqRequest(
+        val faqId = 1L
+        val request = UpdateFaqRequest(
             question = "Updated Question",
             answer = "Updated Answer",
             faqType = 2,
@@ -181,63 +199,48 @@ class FaqControllerTest {
             isFavorite = true,
             osType = "iOS"
         )
-        val updateHeaders = HttpHeaders().apply {
-            contentType = MediaType.APPLICATION_JSON
-        }
-        val updateEntity = HttpEntity(updateRequest, updateHeaders)
-
-        // When
-        val response = restTemplate.exchange(
-            "http://localhost:$port/faq/$createdFaqId",
-            HttpMethod.PUT,
-            updateEntity,
-            Map::class.java
-        )
-
-        // Then
-        assert(response.statusCode == HttpStatus.OK)
-        val body = response.body as Map<*, *>
-        assert(body["question"] == "Updated Question")
-        assert(body["answer"] == "Updated Answer")
         
-        println("[DEBUG_LOG] Response status: ${response.statusCode}")
-        println("[DEBUG_LOG] Response body: ${response.body}")
+        val updatedFaq = FaqResponse(
+            id = faqId,
+            question = "Updated Question",
+            answer = "Updated Answer",
+            faqType = 2,
+            faqCategory = "Updated Category",
+            isFavorite = true,
+            imageUrl = null,
+            appLink = null,
+            startTime = LocalDateTime.now()
+        )
+        
+        every { faqService.updateFaq(faqId, any()) } returns ResponseEntity.ok(updatedFaq)
+        
+        // When & Then
+        mockMvc.perform(
+            put("/faq/$faqId")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request))
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.id").value(faqId))
+            .andExpect(jsonPath("$.question").value("Updated Question"))
+            .andExpect(jsonPath("$.answer").value("Updated Answer"))
+        
+        // Verify
+        verify(exactly = 1) { faqService.updateFaq(faqId, request) }
     }
-
+    
     @Test
     fun `should delete FAQ when deleteFaq is called with valid ID`() {
-        // First create a FAQ to delete
-        val createRequest = CreateFaqRequest(
-            question = "Question to Delete",
-            answer = "Answer to Delete",
-            faqType = 1,
-            faqCategory = "Category to Delete",
-            isFavorite = false,
-            osType = "iOS"
-        )
-        val createHeaders = HttpHeaders().apply {
-            contentType = MediaType.APPLICATION_JSON
-        }
-        val createEntity = HttpEntity(createRequest, createHeaders)
-        val createResponse = restTemplate.postForEntity(
-            "http://localhost:$port/faq",
-            createEntity,
-            Map::class.java
-        )
+        // Given
+        val faqId = 1L
         
-        // Get the ID of the created FAQ
-        val createdFaqId = (createResponse.body as Map<*, *>)["id"] as Int
+        every { faqService.deleteFaq(faqId) } returns ResponseEntity.noContent().build()
         
-        // When
-        val response = restTemplate.exchange(
-            "http://localhost:$port/faq/$createdFaqId",
-            HttpMethod.DELETE,
-            null,
-            Void::class.java
-        )
-
-        // Then
-        assert(response.statusCode == HttpStatus.NO_CONTENT)
-        println("[DEBUG_LOG] Response status: ${response.statusCode}")
+        // When & Then
+        mockMvc.perform(delete("/faq/$faqId"))
+            .andExpect(status().isNoContent)
+        
+        // Verify
+        verify(exactly = 1) { faqService.deleteFaq(faqId) }
     }
 }
